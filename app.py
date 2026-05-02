@@ -7,11 +7,13 @@ load_dotenv()
 
 st.title("Equipment Return Dashboard")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", "")).strip()
+SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", "")).strip()
+
+SUPABASE_URL = SUPABASE_URL.replace("/rest/v1/", "").replace("/rest/v1", "")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    st.error("Missing Supabase credentials. Check your .env file.")
+    st.error("Missing Supabase credentials. Check your Streamlit secrets or .env file.")
     st.stop()
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
