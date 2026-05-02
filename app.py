@@ -47,3 +47,43 @@ for row in data:
     st.write(f"Due date: {row['due_date']}")
     st.write(f"Returned: {row['returned']}")
     st.write("---")
+    st.divider()
+st.header("GIX Events Browser")
+
+try:
+    events_response = supabase.table("events").select("*").order("event_date").execute()
+    events = events_response.data
+
+    assert isinstance(events, list)
+
+    if len(events) > 0:
+        assert "event_name" in events[0]
+        assert "event_date" in events[0]
+        assert "location" in events[0]
+
+except Exception as e:
+    st.error("Could not load events.")
+    st.write(e)
+    events = []
+
+location_filter = st.selectbox(
+    "Filter events by location",
+    ["All"] + sorted(list(set(event["location"] for event in events)))
+)
+
+if location_filter == "All":
+    filtered_events = events
+else:
+    filtered_events = [
+        event for event in events
+        if event["location"] == location_filter
+    ]
+
+if len(filtered_events) == 0:
+    st.write("No events found.")
+else:
+    for event in filtered_events:
+        st.subheader(event["event_name"])
+        st.write(f"Date: {event['event_date']}")
+        st.write(f"Location: {event['location']}")
+        st.write("---")
