@@ -1,4 +1,5 @@
 import os
+import requests
 import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client
@@ -9,14 +10,25 @@ st.title("Equipment Return Dashboard")
 
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", "")).strip()
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", "")).strip()
-
 SUPABASE_URL = SUPABASE_URL.replace("/rest/v1/", "").replace("/rest/v1", "")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    st.error("Missing Supabase credentials. Check your Streamlit secrets or .env file.")
+    st.error("Missing Supabase credentials.")
     st.stop()
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+st.subheader("Seattle Weather API")
+try:
+    weather_url = "https://api.open-meteo.com/v1/forecast?latitude=47.61&longitude=-122.33&daily=temperature_2m_max&timezone=America%2FLos_Angeles"
+    weather_response = requests.get(weather_url, timeout=10)
+    assert weather_response.status_code == 200
+    weather_data = weather_response.json()
+    assert "daily" in weather_data
+    assert "temperature_2m_max" in weather_data["daily"]
+    st.write("Weather API connected successfully.")
+except Exception:
+    st.warning("Weather API unavailable.")
 
 try:
     response = supabase.table("equipment_returns").select("*").execute()
